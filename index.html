@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Control de Alquiler</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f1115;
+      --card: #181b22;
+      --card2: #1f232c;
+      --accent: #4ade80;
+      --accent-soft: rgba(74, 222, 128, .15);
+      --warn: #fbbf24;
+      --danger: #f87171;
+      --muted: #8a93a6;
+      --text: #eef1f6;
+      --border: #2a2f3a;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+    }
+
+    .app-wrap {
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 20px 16px 60px;
+    }
+
+    /* ---- Login ---- */
+    #loginScreen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .login-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 36px 28px;
+      max-width: 360px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, .4);
+    }
+
+    .login-card h1 {
+      font-size: 1.4rem;
+      margin-bottom: 4px;
+      font-weight: 700;
+    }
+
+    .login-card p {
+      color: var(--muted);
+      font-size: .9rem;
+      margin-bottom: 22px;
+    }
+
+    .pin-input {
+      background: var(--card2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 1.4rem;
+      text-align: center;
+      letter-spacing: 8px;
+      width: 100%;
+    }
+
+    .pin-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    .btn-accent {
+      background: var(--accent);
+      border: none;
+      color: #0f1115;
+      font-weight: 700;
+      border-radius: 12px;
+      padding: 12px;
+      width: 100%;
+      margin-top: 14px;
+      transition: transform .1s ease;
+    }
+
+    .btn-accent:active {
+      transform: scale(.97);
+    }
+
+    .login-error {
+      color: var(--danger);
+      font-size: .85rem;
+      margin-top: 10px;
+      min-height: 18px;
+    }
+
+    /* ---- App ---- */
+    header.top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 22px;
+    }
+
+    header.top h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    header.top .sub {
+      color: var(--muted);
+      font-size: .8rem;
+    }
+
+    .btn-logout {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 10px;
+      padding: 6px 12px;
+      font-size: .8rem;
+    }
+
+    /* ---- Resumen ---- */
+    .summary-card {
+      background: linear-gradient(135deg, var(--card2), var(--card));
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .summary-card .label {
+      color: var(--muted);
+      font-size: .8rem;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    .summary-card .value {
+      font-size: 1.6rem;
+      font-weight: 800;
+      margin: 4px 0 2px;
+    }
+
+    .summary-card .value.ok {
+      color: var(--accent);
+    }
+
+    .summary-card .value.warn {
+      color: var(--warn);
+    }
+
+    .summary-card .detail {
+      color: var(--muted);
+      font-size: .85rem;
+    }
+
+    /* ---- Grid de meses ---- */
+    .meses-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .mes-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .mes-box .mes-nombre {
+      font-weight: 700;
+      font-size: .95rem;
+      text-transform: capitalize;
+    }
+
+    .mes-box .mes-monto {
+      color: var(--muted);
+      font-size: .78rem;
+      margin-bottom: 10px;
+    }
+
+    .progress-track {
+      background: var(--card2);
+      border-radius: 8px;
+      height: 10px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 8px;
+      transition: width .4s ease;
+    }
+
+    .mes-box .estado {
+      font-size: .78rem;
+      font-weight: 600;
+    }
+
+    .mes-box.pagado {
+      border-color: rgba(74, 222, 128, .35);
+    }
+
+    .mes-box.pagado .progress-fill {
+      background: var(--accent);
+    }
+
+    .mes-box.pagado .estado {
+      color: var(--accent);
+    }
+
+    .mes-box.parcial {
+      border-color: rgba(251, 191, 36, .35);
+    }
+
+    .mes-box.parcial .progress-fill {
+      background: var(--warn);
+    }
+
+    .mes-box.parcial .estado {
+      color: var(--warn);
+    }
+
+    .mes-box.pendiente .progress-fill {
+      background: var(--danger);
+    }
+
+    .mes-box.pendiente .estado {
+      color: var(--danger);
+    }
+
+    .mes-box.pendiente {
+      border-color: rgba(248, 113, 113, .3);
+    }
+
+    .badge-pct {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      font-size: .72rem;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    /* ---- Formulario de pago ---- */
+    .form-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 22px;
+    }
+
+    .form-card h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .form-card .form-control,
+    .form-card .form-label {
+      background: var(--card2);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .form-card .form-control::placeholder {
+      color: #5f6779;
+    }
+
+    .form-card .form-control:focus {
+      background: var(--card2);
+      color: var(--text);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    .form-card label {
+      color: var(--muted);
+      font-size: .8rem;
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    .msg-feedback {
+      font-size: .85rem;
+      margin-top: 10px;
+      min-height: 20px;
+    }
+
+    .msg-feedback.ok {
+      color: var(--accent);
+    }
+
+    .msg-feedback.err {
+      color: var(--danger);
+    }
+
+    /* ---- Historial ---- */
+    .historial-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+    }
+
+    .historial-card h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .historial-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: .88rem;
+    }
+
+    .historial-item:last-child {
+      border-bottom: none;
+    }
+
+    .historial-item .h-fecha {
+      color: var(--muted);
+      font-size: .78rem;
+    }
+
+    .historial-item .h-monto {
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .historial-item .h-nota {
+      color: var(--muted);
+      font-size: .95rem;
+      flex: 1;
+      margin-left: 10px;
+      text-align: right;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .empty-state {
+      color: var(--muted);
+      font-size: .85rem;
+      text-align: center;
+      padding: 14px 0;
+    }
+
+    .spinner-wrap {
+      text-align: center;
+      padding: 40px 0;
+      color: var(--muted);
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ============ PANTALLA LOGIN ============ -->
+  <div id="loginScreen">
+    <div class="login-card">
+      <h1>Control de Alquiler</h1>
+      <p>Ingresa la clave de acceso</p>
+      <input type="password" id="pinInput" class="pin-input" maxlength="6" inputmode="numeric" placeholder="••••"
+        autocomplete="off">
+      <button class="btn-accent" id="btnLogin">Entrar</button>
+      <div class="login-error" id="loginError"></div>
+    </div>
+  </div>
+
+  <!-- ============ APP PRINCIPAL ============ -->
+  <div class="app-wrap d-none" id="appScreen">
+    <header class="top">
+      <div>
+        <h1>Control de Alquiler</h1>
+        <div class="sub">Pago mensual: S/ <span id="montoMensualLabel">250</span> · vence el 15</div>
+      </div>
+      <button class="btn-logout" id="btnLogout">Salir</button>
+    </header>
+
+    <!-- Resumen -->
+    <div class="summary-card">
+      <div class="label">Estado actual</div>
+      <div class="value" id="resumenMesValue">—</div>
+      <div class="detail" id="resumenDetalle">Cargando...</div>
+    </div>
+
+    <!-- Grid de meses -->
+    <div class="meses-grid" id="mesesGrid">
+      <div class="spinner-wrap">Cargando meses...</div>
+    </div>
+
+    <!-- Registrar pago -->
+    <div class="form-card">
+      <h2>Registrar pago</h2>
+      <div class="row g-2">
+        <div class="col-7">
+          <label for="montoInput">Monto recibido (S/)</label>
+          <input type="number" id="montoInput" class="form-control" placeholder="Ej: 110" min="0.01" step="0.01">
+        </div>
+        <div class="col-5">
+          <label for="fechaInput">Fecha</label>
+          <input type="date" id="fechaInput" class="form-control">
+        </div>
+      </div>
+      <div class="mt-2">
+        <label for="notaInput">Nota (opcional)</label>
+        <input type="text" id="notaInput" class="form-control" placeholder="Ej: pago parcial abril">
+      </div>
+      <button class="btn-accent" id="btnGuardarPago">Guardar pago</button>
+      <div class="msg-feedback" id="pagoFeedback"></div>
+    </div>
+
+    <!-- Historial -->
+    <div class="historial-card">
+      <h2>Últimos pagos registrados</h2>
+      <div id="historialList">
+        <div class="empty-state">Cargando...</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script>
+    /* ======================================================
+       CONFIGURACIÓN
+       ====================================================== */
+    // La clave de acceso, monto mensual y mes base se definen en config.js
+    // (CLAVE_ACCESO, MONTO_MENSUAL, MES_BASE_PAGADO, SUPABASE_URL, SUPABASE_KEY)
+
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    /* ======================================================
+       LOGIN
+       ====================================================== */
+    const SESSION_KEY = 'alquiler_auth_ok';
+
+    function checkSession() {
+      if (sessionStorage.getItem(SESSION_KEY) === 'true') {
+        mostrarApp();
+      }
+    }
+
+    document.getElementById('btnLogin').addEventListener('click', intentarLogin);
+    document.getElementById('pinInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') intentarLogin();
+    });
+
+    function intentarLogin() {
+      const val = document.getElementById('pinInput').value.trim();
+      const errEl = document.getElementById('loginError');
+      if (val === String(CLAVE_ACCESO)) {
+        sessionStorage.setItem(SESSION_KEY, 'true');
+        mostrarApp();
+      } else {
+        errEl.textContent = 'Clave incorrecta';
+        document.getElementById('pinInput').value = '';
+      }
+    }
+
+    function mostrarApp() {
+      document.getElementById('loginScreen').classList.add('d-none');
+      document.getElementById('appScreen').classList.remove('d-none');
+      document.getElementById('montoMensualLabel').textContent = MONTO_MENSUAL;
+      document.getElementById('fechaInput').value = new Date().toISOString().split('T')[0];
+      cargarTodo();
+    }
+
+    document.getElementById('btnLogout').addEventListener('click', () => {
+      sessionStorage.removeItem(SESSION_KEY);
+      location.reload();
+    });
+
+    checkSession();
+
+    /* ======================================================
+       UTILIDADES DE FECHAS / MESES
+       ====================================================== */
+    const NOMBRES_MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+      'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+
+    // MES_BASE_PAGADO viene de config.js, formato {año, mes} con mes 1-12
+    // Representa el ÚLTIMO mes que ya está pagado completo ANTES de
+    // empezar a registrar pagos en este sistema.
+    function mesSiguiente(anio, mes) {
+      mes += 1;
+      if (mes > 12) { mes = 1; anio += 1; }
+      return { anio, mes };
+    }
+
+    function nombreMes(anio, mes) {
+      return `${NOMBRES_MESES[mes - 1]} ${anio}`;
+    }
+
+    /* ======================================================
+       CARGA DE DATOS
+       ====================================================== */
+    async function cargarTodo() {
+      const { data, error } = await sb
+        .from('pagos')
+        .select('*')
+        .order('fecha', { ascending: true });
+
+      if (error) {
+        console.error(error);
+        document.getElementById('mesesGrid').innerHTML =
+          `<div class="empty-state">Error al cargar datos. Revisa la configuración de Supabase.</div>`;
+        return;
+      }
+
+      renderTodo(data || []);
+    }
+
+    /* ======================================================
+       LÓGICA DE CÁLCULO
+       ====================================================== */
+    function calcularEstadoMeses(pagos) {
+      const totalPagado = pagos.reduce((acc, p) => acc + Number(p.monto), 0);
+
+      // Generar TODOS los meses desde el mes siguiente al MES_BASE_PAGADO
+      // hasta el mes actual (según fecha de hoy)
+      const hoy = new Date();
+      const anioActual = hoy.getFullYear();
+      const mesActual = hoy.getMonth() + 1; // 1-12
+
+      let { anio, mes } = mesSiguiente(MES_BASE_PAGADO.anio, MES_BASE_PAGADO.mes);
+
+      const meses = [];
+      let saldo = totalPagado;
+      let mesActualPendiente = null;
+
+      // Generar hasta llegar al mes actual (inclusive), límite de seguridad 60
+      for (let i = 0; i < 60; i++) {
+        const montoMes = MONTO_MENSUAL;
+        let pagadoEnEsteMes = Math.min(saldo, montoMes);
+        saldo -= pagadoEnEsteMes;
+
+        const pct = Math.round((pagadoEnEsteMes / montoMes) * 100);
+        let estado = 'pendiente';
+        if (pct >= 100) estado = 'pagado';
+        else if (pct > 0) estado = 'parcial';
+
+        meses.push({
+          anio, mes,
+          montoMes,
+          pagado: pagadoEnEsteMes,
+          falta: montoMes - pagadoEnEsteMes,
+          pct,
+          estado
+        });
+
+        if (mesActualPendiente === null && estado !== 'pagado') {
+          mesActualPendiente = meses[meses.length - 1];
+        }
+
+        // Si ya llegamos al mes actual (o más allá), paramos
+        if (anio === anioActual && mes === mesActual) {
+          break;
+        }
+
+        const sig = mesSiguiente(anio, mes);
+        anio = sig.anio; mes = sig.mes;
+      }
+
+      return { meses, totalPagado, mesActualPendiente };
+    }
+
+    /* ======================================================
+       RENDER
+       ====================================================== */
+    function renderTodo(pagos) {
+      const { meses, totalPagado, mesActualPendiente } = calcularEstadoMeses(pagos);
+
+      renderResumen(mesActualPendiente, totalPagado);
+      renderMesesGrid(meses);
+      renderHistorial(pagos);
+    }
+
+    function renderResumen(mesPendiente, totalPagado) {
+      const valEl = document.getElementById('resumenMesValue');
+      const detEl = document.getElementById('resumenDetalle');
+
+      if (!mesPendiente) {
+        valEl.textContent = '¡Todo al día!';
+        valEl.className = 'value ok';
+        detEl.textContent = `Total acumulado registrado: S/ ${totalPagado.toFixed(2)}`;
+        return;
+      }
+
+      const nombre = nombreMes(mesPendiente.anio, mesPendiente.mes);
+
+      if (mesPendiente.estado === 'parcial') {
+        valEl.textContent = `${capitalizar(nombre)} en curso`;
+        valEl.className = 'value warn';
+        detEl.textContent =
+          `Pagado S/ ${mesPendiente.pagado.toFixed(2)} de S/ ${mesPendiente.montoMes} ` +
+          `· Falta S/ ${mesPendiente.falta.toFixed(2)}`;
+      } else {
+        valEl.textContent = `Debe ${capitalizar(nombre)}`;
+        valEl.className = 'value warn';
+        detEl.textContent = `Aún no se ha registrado ningún pago para este mes (S/ ${mesPendiente.montoMes}).`;
+      }
+    }
+
+    function renderMesesGrid(meses) {
+      const grid = document.getElementById('mesesGrid');
+
+      // Mostrar solo los últimos 4 meses relevantes (los más recientes generados)
+      let listaCompleta = [...meses];
+
+      // Si hay menos de 4 meses, rellenar hacia atrás con meses
+      // anteriores al primero, marcados como pagados 100%
+      while (listaCompleta.length < 4) {
+        const primero = listaCompleta[0];
+        let anioPrev = primero.anio;
+        let mesPrev = primero.mes - 1;
+        if (mesPrev < 1) { mesPrev = 12; anioPrev -= 1; }
+
+        listaCompleta.unshift({
+          anio: anioPrev, mes: mesPrev,
+          montoMes: MONTO_MENSUAL,
+          pagado: MONTO_MENSUAL,
+          falta: 0,
+          pct: 100,
+          estado: 'pagado'
+        });
+      }
+
+      const ultimos4 = listaCompleta.slice(-4);
+
+      if (ultimos4.length === 0) {
+        grid.innerHTML = `<div class="empty-state">No hay meses para mostrar.</div>`;
+        return;
+      }
+
+      grid.innerHTML = ultimos4.map(m => {
+        const nombre = capitalizar(nombreMes(m.anio, m.mes));
+        let estadoTexto = '';
+        if (m.estado === 'pagado') estadoTexto = 'Pagado completo';
+        else if (m.estado === 'parcial') estadoTexto = `Faltan S/ ${m.falta.toFixed(2)}`;
+        else estadoTexto = `Faltan S/ ${m.falta.toFixed(2)}`;
+
+        return `
+      <div class="mes-box ${m.estado}">
+        <span class="badge-pct">${m.pct}%</span>
+        <div class="mes-nombre">${nombre}</div>
+        <div class="mes-monto">S/ ${m.pagado.toFixed(2)} de S/ ${m.montoMes.toFixed(2)}</div>
+        <div class="progress-track">
+          <div class="progress-fill" style="width:${m.pct}%"></div>
+        </div>
+        <div class="estado">${estadoTexto}</div>
+      </div>
+    `;
+      }).join('');
+    }
+
+    function renderHistorial(pagos) {
+      const cont = document.getElementById('historialList');
+
+      if (!pagos || pagos.length === 0) {
+        cont.innerHTML = `<div class="empty-state">Aún no hay pagos registrados.</div>`;
+        return;
+      }
+
+      const coberturas = calcularCoberturaPagos(pagos);
+      // Más recientes primero, máximo 10
+      const recientes = coberturas.slice().reverse().slice(0, 10);
+
+      cont.innerHTML = recientes.map(({ pago, coberturas }) => {
+        const fechaTexto = formatearFechaAmigable(pago.fecha);
+
+        const coberturaTexto = coberturas.map(c => {
+          const nombreMesTexto = capitalizar(NOMBRES_MESES[c.mes - 1]);
+          if (c.completa && c.monto === MONTO_MENSUAL) {
+            return `cubrió completo ${nombreMesTexto}`;
+          } else if (c.completa) {
+            return `cubrió los últimos S/ ${c.monto.toFixed(2)} de ${nombreMesTexto}`;
+          } else {
+            return `cubrió S/ ${c.monto.toFixed(2)} de ${nombreMesTexto}`;
+          }
+        }).join(' y ');
+
+        return `
+      <div class="historial-item" style="flex-direction:column; align-items:flex-start; gap:4px;">
+        <div class="h-monto">S/ ${Number(pago.monto).toFixed(2)}</div>
+        <div class="h-fecha">${fechaTexto}</div>
+        <div class="h-nota" style="text-align:left; white-space:normal;">Esto ${coberturaTexto}${pago.nota ? ' · ' + escapeHtml(pago.nota) : ''}</div>
+      </div>
+    `;
+      }).join('');
+    }
+
+    /* ======================================================
+       REGISTRAR NUEVO PAGO
+       ====================================================== */
+    document.getElementById('btnGuardarPago').addEventListener('click', async () => {
+      const montoInput = document.getElementById('montoInput');
+      const fechaInput = document.getElementById('fechaInput');
+      const notaInput = document.getElementById('notaInput');
+      const feedback = document.getElementById('pagoFeedback');
+
+      const monto = parseFloat(montoInput.value);
+      const fecha = fechaInput.value;
+      const nota = notaInput.value.trim();
+
+      feedback.textContent = '';
+      feedback.className = 'msg-feedback';
+
+      if (!monto || monto <= 0) {
+        feedback.textContent = 'Ingresa un monto válido.';
+        feedback.classList.add('err');
+        return;
+      }
+      if (!fecha) {
+        feedback.textContent = 'Selecciona una fecha.';
+        feedback.classList.add('err');
+        return;
+      }
+
+      const btn = document.getElementById('btnGuardarPago');
+      btn.disabled = true;
+      btn.textContent = 'Guardando...';
+
+      const { error } = await sb
+        .from('pagos')
+        .insert([{ monto, fecha, nota: nota || null }]);
+
+      btn.disabled = false;
+      btn.textContent = 'Guardar pago';
+
+      if (error) {
+        console.error(error);
+        feedback.textContent = 'Error al guardar. Intenta de nuevo.';
+        feedback.classList.add('err');
+        return;
+      }
+
+      feedback.textContent = '✓ Pago registrado correctamente.';
+      feedback.classList.add('ok');
+      montoInput.value = '';
+      notaInput.value = '';
+      fechaInput.value = new Date().toISOString().split('T')[0];
+
+      cargarTodo();
+
+      setTimeout(() => {
+        feedback.textContent = '';
+        feedback.className = 'msg-feedback';
+      }, 3000);
+    });
+
+    /* ======================================================
+       HELPERS
+       ====================================================== */
+    function capitalizar(str) {
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    function formatearFecha(fechaStr) {
+      const [y, m, d] = fechaStr.split('-');
+      return `${d}/${m}/${y}`;
+    }
+
+    function formatearFechaAmigable(fechaStr) {
+      const [y, m, d] = fechaStr.split('-').map(Number);
+      return `Pagó el día ${d} de ${NOMBRES_MESES[m - 1]} del ${y}`;
+    }
+
+    function calcularCoberturaPagos(pagos) {
+      const ordenados = [...pagos].sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+      let { anio, mes } = mesSiguiente(MES_BASE_PAGADO.anio, MES_BASE_PAGADO.mes);
+      let saldoAcumuladoAntes = 0;
+      const resultado = [];
+
+      for (const p of ordenados) {
+        let monto = Number(p.monto);
+        const coberturas = [];
+
+        while (monto > 0) {
+          const faltaEsteMes = MONTO_MENSUAL - saldoAcumuladoAntes;
+          const aplicado = Math.min(monto, faltaEsteMes);
+
+          coberturas.push({
+            anio, mes,
+            monto: aplicado,
+            completa: (saldoAcumuladoAntes + aplicado) >= MONTO_MENSUAL
+          });
+
+          saldoAcumuladoAntes += aplicado;
+          monto -= aplicado;
+
+          if (saldoAcumuladoAntes >= MONTO_MENSUAL) {
+            saldoAcumuladoAntes = 0;
+            const sig = mesSiguiente(anio, mes);
+            anio = sig.anio; mes = sig.mes;
+          }
+        }
+
+        resultado.push({ pago: p, coberturas });
+      }
+
+      return resultado;
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+  </script>
+</body>
+
+</html>
