@@ -515,7 +515,7 @@
     </div>
 
     <!-- Registrar pago -->
-    <div class="form-card">
+    <div class="form-card" id="formPagoCard">
       <h2>💰 Registrar pago</h2>
       <div class="form-subtitle">Ingresa el monto recibido hoy</div>
       <div class="monto-wrap mb-3">
@@ -598,7 +598,16 @@
       location.reload();
     });
 
-    checkSession();
+    /* ======================================================
+       VISTA INQUILINO
+       ====================================================== */
+    const esVistaInquilino = new URLSearchParams(window.location.search).get('vista') === 'inquilino';
+    if (esVistaInquilino) {
+      document.getElementById('formPagoCard').style.display = 'none';
+      mostrarApp();
+    } else {
+      checkSession();
+    }
 
     /* ======================================================
        UTILIDADES DE FECHAS / MESES
